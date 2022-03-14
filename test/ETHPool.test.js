@@ -2,6 +2,9 @@ const { expect, assert } = require('chai');
 const { BigNumber } = require('ethers');
 const { ethers } = require('hardhat');
 
+const bigNum = num=>(num + '0'.repeat(18))
+const smallNum = num=>(parseInt(num)/bigNum(1))
+
 describe('ETHPool contract', function () {
    before(async function () {
       [
@@ -132,5 +135,16 @@ describe('ETHPool contract', function () {
          this.ethPool.connect(this.stakerOne).withdrawStakeAndRewards()
       ).to.be.revertedWith('Balance of unstaker should be greater than zero');
    });
+
+   it('Get ETH in EthPool Contract', async function () {
+      await this.ethPool.connect(this.stakerOne).stake({ value: BigInt(this.stakeAmount) });
+      await this.ethPool.connect(this.stakerTwo).stake({ value: BigInt(this.stakeAmount) });
+      await this.ethPool.depositRewards({ value: BigInt(this.rewardsAmount) });
+
+      let totalETH = await ethers.provider.getBalance(this.ethPool.address);
+      totalETH = smallNum(totalETH);
+      expect(totalETH).to.equal(40);
+      console.log('totalETH in contract is ', totalETH);
+   })
 
 });
